@@ -68,7 +68,7 @@ class _HomePageState extends State<HomePage> {
             SizedBox(
               height: 30,
             ),
-            _counrtiesList(model.countryDatas),
+            ..._counrtiesList(model.countryDatas),
           ],
         ),
       ),
@@ -76,8 +76,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   _counrtiesList(List<CountryData> _counrtyData) {
-    return Column(
-      children: _counrtyData.map((value) => CountryItem(value)).toList(),
-    );
+    return _counrtyData.map((value) => CountryItem(value)).toList();
   }
 }
