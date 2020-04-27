@@ -12,6 +12,31 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  ScrollController _scrollController = ScrollController();
+  bool showFloatingButton = false;
+
+  _addScrollListener() {
+    _scrollController.addListener(() {
+      if (_scrollController.offset < 200 && showFloatingButton) {
+        setState(() {
+          showFloatingButton = false;
+        });
+      } else if (_scrollController.offset >= 200 &&
+          showFloatingButton == false) {
+        setState(() {
+          showFloatingButton = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    //监听滚动事件，打印滚动位置
+    _addScrollListener();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BaseView<HomeViewModel>(
@@ -29,10 +54,19 @@ class _HomePageState extends State<HomePage> {
           bodyWidget = Center(
               child: Text('Oops...', style: TextStyle(color: Colors.white)));
 
-        return Scaffold(
-          backgroundColor: Color(0xff383838),
-          appBar: _appBar(),
-          body: bodyWidget,
+        return GestureDetector(
+          onTap: () {
+            FocusScopeNode currentFocus = FocusScope.of(context);
+            if (!currentFocus.hasPrimaryFocus) {
+              currentFocus.unfocus();
+            }
+          },
+          child: Scaffold(
+            backgroundColor: Color(0xff383838),
+            appBar: _appBar(),
+            body: bodyWidget,
+            floatingActionButton: showFloatingButton ? _floatingButton() : null,
+          ),
         );
       },
     );
@@ -41,8 +75,14 @@ class _HomePageState extends State<HomePage> {
   _appBar() => AppBar(
         elevation: 0,
         backgroundColor: Color(0xff383838),
-        title: Text('Covid-19'),
+        title: Text(
+          'Covid-19',
+          style: TextStyle(
+            color: Colors.white,
+          ),
+        ),
       );
+
   _body(HomeViewModel model) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20),
@@ -50,6 +90,7 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Color(0xff383838),
         onRefresh: () async => model.fetchSummeryData(),
         child: ListView(
+          controller: _scrollController,
           physics: AlwaysScrollableScrollPhysics(),
           children: [
             TotalCard(
@@ -65,14 +106,53 @@ class _HomePageState extends State<HomePage> {
                 model.globalData.totalRecovered,
                 model.globalData.totalDeaths,
                 Color(0xff45B4B4)),
-            SizedBox(
-              height: 30,
+            SizedBox(height: 20),
+            TextField(
+              onChanged: (text) => model.searchFilter(text),
+              style: TextStyle(color: Colors.white70, fontSize: 20),
+              cursorColor: Colors.cyan,
+              decoration: InputDecoration(
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.white60,
+                  ),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Colors.cyan,
+                    width: 2,
+                  ),
+                ),
+                hoverColor: Colors.cyan,
+                focusColor: Colors.cyan,
+                hintStyle: TextStyle(
+                  color: Colors.white60,
+                ),
+                hintText: 'Search by country name',
+                suffixIcon: Icon(Icons.search, color: Colors.white60),
+              ),
             ),
-            ..._counrtiesList(model.countryDatas),
+            SizedBox(height: 10),
+            ..._counrtiesList(model.filteredCountryDatas),
           ],
         ),
       ),
     );
+  }
+
+  _floatingButton() {
+    return FloatingActionButton(
+        child: new Icon(
+          Icons.arrow_upward,
+          color: Colors.white,
+        ),
+        onPressed: () {
+          _scrollController.animateTo(
+            0.0,
+            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 300),
+          );
+        });
   }
 
   _counrtiesList(List<CountryData> _counrtyData) {

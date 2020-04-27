@@ -10,6 +10,7 @@ class HomeViewModel extends BaseModel {
 
   GlobalData globalData;
   List<CountryData> countryDatas;
+  List<CountryData> filteredCountryDatas;
 
   initModel() async {
     await fetchSummeryData();
@@ -26,9 +27,19 @@ class HomeViewModel extends BaseModel {
           countries.map((data) => CountryData.fromJson(data)).toList();
       countryDatas.sort((value1, value2) =>
           value2.totalConfirmed.compareTo(value1.totalConfirmed));
+      filteredCountryDatas = countryDatas;
       setState(ViewState.Success);
     } else {
       setState(ViewState.Error);
     }
+  }
+
+  searchFilter(String searchInput) {
+    filteredCountryDatas = countryDatas;
+    filteredCountryDatas = filteredCountryDatas
+        .where((CountryData countryData) =>
+            countryData.name.toUpperCase().contains(searchInput.toUpperCase()))
+        .toList();
+    setState(ViewState.Success);
   }
 }
