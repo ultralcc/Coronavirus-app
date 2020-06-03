@@ -150,7 +150,7 @@ class _HomePageState extends State<HomePage> {
           _scrollController.animateTo(
             0.0,
             curve: Curves.easeOut,
-            duration: const Duration(milliseconds: 300),
+            duration: Duration(milliseconds: _scrollController.offset ~/ 15),
           );
         });
   }
